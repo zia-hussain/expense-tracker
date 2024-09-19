@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { PlusIcon, TrashIcon, MoonIcon, SunIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+  PlusIcon,
+  TrashIcon,
+  MoonIcon,
+  SunIcon,
+  ChevronDownIcon,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -24,53 +20,36 @@ import {
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
 function Dashboard() {
-  const [expenses, setExpenses] = useState([]);
+  const [darkMode, setDarkMode] = useState(true);
   const [newExpense, setNewExpense] = useState({
-    amount: 0,
+    amount: "",
     date: new Date().toISOString().split("T")[0],
     category: "Food",
     notes: "",
   });
-  const [totalExpenses, setTotalExpenses] = useState(0);
-  const [budget, setBudget] = useState(1000);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    // Placeholder for Firebase Firestore fetch
-    const fetchExpenses = async () => {
-      // Simulating data fetch
-      setExpenses([
-        {
-          id: "1",
-          amount: 50,
-          date: "2023-05-01",
-          category: "Food",
-          notes: "Groceries",
-        },
-        {
-          id: "2",
-          amount: 30,
-          date: "2023-05-02",
-          category: "Travel",
-          notes: "Bus fare",
-        },
-        {
-          id: "3",
-          amount: 100,
-          date: "2023-05-03",
-          category: "Entertainment",
-          notes: "Movie night",
-        },
-      ]);
-    };
-
-    fetchExpenses();
-  }, []);
-
-  useEffect(() => {
-    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    setTotalExpenses(total);
-  }, [expenses]);
+  const [expenses, setExpenses] = useState([
+    {
+      id: 1,
+      amount: 50,
+      category: "Food",
+      date: "2023-05-15",
+      notes: "Groceries",
+    },
+    {
+      id: 2,
+      amount: 30,
+      category: "Travel",
+      date: "2023-05-16",
+      notes: "Bus fare",
+    },
+    {
+      id: 3,
+      amount: 20,
+      category: "Entertainment",
+      date: "2023-05-17",
+      notes: "Movie ticket",
+    },
+  ]);
 
   useEffect(() => {
     if (darkMode) {
@@ -80,171 +59,199 @@ function Dashboard() {
     }
   }, [darkMode]);
 
-  const handleAddExpense = () => {
-    const expenseWithId = { ...newExpense, id: Date.now().toString() };
-    setExpenses([...expenses, expenseWithId]);
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    const newExpenseWithId = { ...newExpense, id: Date.now() };
+    setExpenses([...expenses, newExpenseWithId]);
     setNewExpense({
-      amount: 0,
+      amount: "",
       date: new Date().toISOString().split("T")[0],
       category: "Food",
       notes: "",
     });
   };
 
-  const handleDeleteExpense = (id) => {
-    setExpenses(expenses.filter((expense) => expense.id !== id));
-  };
+  const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  );
+  const budget = 1000;
 
   const chartData = categories.map((category) => ({
     name: category,
     amount: expenses
       .filter((expense) => expense.category === category)
-      .reduce((sum, expense) => sum + expense.amount, 0),
+      .reduce((sum, expense) => sum + Number(expense.amount), 0),
   }));
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <nav className="border-b border-border">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <nav className="bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Expense Tracker</h1>
-          <Button
-            variant="ghost"
-            size="icon"
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            Expense Tracker
+          </h1>
+          <button
             onClick={() => setDarkMode(!darkMode)}
-            className="rounded-full"
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
           >
-            {darkMode ? (
-              <SunIcon className="h-[1.2rem] w-[1.2rem]" />
-            ) : (
-              <MoonIcon className="h-[1.2rem] w-[1.2rem]" />
-            )}
-          </Button>
+            {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
+          </button>
         </div>
       </nav>
+
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="col-span-full lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Expense Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="amount" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Budget Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p>Budget: ${budget.toFixed(2)}</p>
-                <p>Total Expenses: ${totalExpenses.toFixed(2)}</p>
-                <p>Remaining: ${(budget - totalExpenses).toFixed(2)}</p>
+          <div className="col-span-full lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
+              Expense Overview
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
+                />
+                <Legend />
+                <Bar dataKey="amount" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
+              Budget Overview
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span>Budget:</span>
+                <span className="font-semibold">${budget.toFixed(2)}</span>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="col-span-full">
-            <CardHeader>
-              <CardTitle>Add New Expense</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleAddExpense();
-                }}
-                className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-              >
-                <Input
-                  type="number"
-                  placeholder="Amount"
-                  value={newExpense.amount || ""}
-                  onChange={(e) =>
-                    setNewExpense({
-                      ...newExpense,
-                      amount: parseFloat(e.target.value),
-                    })
-                  }
-                  required
-                />
-                <Input
-                  type="date"
-                  value={newExpense.date}
-                  onChange={(e) =>
-                    setNewExpense({ ...newExpense, date: e.target.value })
-                  }
-                  required
-                />
-                <Select
+              <div className="flex justify-between items-center">
+                <span>Total Expenses:</span>
+                <span className="font-semibold">
+                  ${totalExpenses.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Remaining:</span>
+                <span className="font-semibold">
+                  ${(budget - totalExpenses).toFixed(2)}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full"
+                  style={{ width: `${(totalExpenses / budget) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 text-blue-600 dark:text-blue-400">
+              Add New Expense
+            </h2>
+            <form
+              onSubmit={handleAddExpense}
+              className="grid grid-cols-1 gap-6"
+            >
+              <input
+                type="number"
+                placeholder="Amount"
+                value={newExpense.amount}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, amount: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
+                required
+              />
+
+              <input
+                type="date"
+                value={newExpense.date}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, date: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
+                required
+              />
+
+              <div className="relative">
+                <select
                   value={newExpense.category}
-                  onValueChange={(value) =>
-                    setNewExpense({ ...newExpense, category: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Notes"
-                  value={newExpense.notes}
                   onChange={(e) =>
-                    setNewExpense({ ...newExpense, notes: e.target.value })
+                    setNewExpense({ ...newExpense, category: e.target.value })
                   }
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow appearance-none"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
                 />
-                <Button type="submit" className="md:col-span-2 lg:col-span-4">
-                  <PlusIcon className="mr-2 h-4 w-4" /> Add Expense
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-          <Card className="col-span-full">
-            <CardHeader>
-              <CardTitle>Recent Expenses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {expenses.slice(0, 5).map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex justify-between items-center p-4 rounded-lg bg-secondary"
-                  >
-                    <div>
-                      <p className="font-semibold">
-                        ${expense.amount.toFixed(2)} - {expense.category}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {expense.date} - {expense.notes}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteExpense(expense.id)}
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
               </div>
-            </CardContent>
-          </Card>
+
+              <input
+                type="text"
+                placeholder="Notes"
+                value={newExpense.notes}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, notes: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-semibold"
+              >
+                <PlusIcon size={20} className="mr-2" /> Add Expense
+              </button>
+            </form>
+          </div>
+
+          <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
+              Expense List
+            </h2>
+            <ul className="space-y-4">
+              {expenses.map((expense) => (
+                <li
+                  key={expense.id}
+                  className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
+                >
+                  <div>
+                    <p className="font-semibold">
+                      {expense.category}: ${expense.amount}
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {expense.date} - {expense.notes}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setExpenses(
+                        expenses.filter((item) => item.id !== expense.id)
+                      )
+                    }
+                    className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
+                  >
+                    <TrashIcon size={20} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </main>
     </div>
