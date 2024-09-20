@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  PlusIcon,
-  TrashIcon,
-  MoonIcon,
-  SunIcon,
-  ChevronDownIcon,
-} from "lucide-react";
+import { TrashIcon, MoonIcon, SunIcon, StarIcon, LogOut } from "lucide-react";
+
+import { FaDollarSign, FaCalendarAlt, FaListUl, FaPlus } from "react-icons/fa";
 import {
   BarChart,
   Bar,
@@ -16,40 +12,34 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addExpense,
+  deleteExpense,
+  selectExpenses,
+} from "../../redux/features/expenseSlice";
+import { loginSuccess, logout } from "@/redux/features/authSlice";
+import { ref } from "firebase/database";
+import { db } from "@/firebase/firebaseConfig";
 
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
 function Dashboard() {
+  const dispatch = useDispatch();
+  const expenses = useSelector(selectExpenses);
+
   const [darkMode, setDarkMode] = useState(true);
   const [newExpense, setNewExpense] = useState({
     amount: "",
     date: new Date().toISOString().split("T")[0],
-    category: "Food",
+    category: "",
     notes: "",
   });
-  const [expenses, setExpenses] = useState([
-    {
-      id: 1,
-      amount: 50,
-      category: "Food",
-      date: "2023-05-15",
-      notes: "Groceries",
-    },
-    {
-      id: 2,
-      amount: 30,
-      category: "Travel",
-      date: "2023-05-16",
-      notes: "Bus fare",
-    },
-    {
-      id: 3,
-      amount: 20,
-      category: "Entertainment",
-      date: "2023-05-17",
-      notes: "Movie ticket",
-    },
-  ]);
+  const [userName, setUserName] = useState("John Doe");
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -61,14 +51,36 @@ function Dashboard() {
 
   const handleAddExpense = (e) => {
     e.preventDefault();
+    if (newExpense.category === "0") {
+      alert("Please select a valid category.");
+      return;
+    }
+
     const newExpenseWithId = { ...newExpense, id: Date.now() };
-    setExpenses([...expenses, newExpenseWithId]);
+
+    dispatch(addExpense(newExpenseWithId));
+
     setNewExpense({
       amount: "",
       date: new Date().toISOString().split("T")[0],
       category: "Food",
       notes: "",
     });
+  };
+
+  const openDetailModal = (expense) => {
+    setSelectedExpense(expense);
+    setShowDetailModal(true);
+  };
+
+  const openDeleteModal = (expense) => {
+    setExpenseToDelete(expense);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    dispatch(deleteExpense(expenseToDelete.id));
+    setShowDeleteModal(false);
   };
 
   const totalExpenses = expenses.reduce(
@@ -84,6 +96,10 @@ function Dashboard() {
       .reduce((sum, expense) => sum + Number(expense.amount), 0),
   }));
 
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <nav className="bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
@@ -91,17 +107,64 @@ function Dashboard() {
           <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             Expense Tracker
           </h1>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-          >
-            {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+              {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
+            </button>
+            <button
+              onClick={() => handleLogout()}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
       </nav>
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            className={`col-span-full rounded-xl shadow-xl p-8 text-white relative overflow-hidden ${
+              darkMode
+                ? "bg-gradient-to-r from-[#0A2640] to-[#1C3D5B]"
+                : "bg-white text-gray-900"
+            }`}
+          >
+            {darkMode && (
+              <>
+                <div className="absolute top-0 left-0 w-full h-full bg-blue-400 opacity-30 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10"></div>
+                <div className="absolute bottom-0 right-0 w-full h-full bg-purple-500 opacity-30 transform translate-x-1/2 translate-y-1/2 rounded-full -z-10"></div>
+              </>
+            )}
+            <div className="flex items-center mb-4">
+              <StarIcon
+                size={32}
+                className={`mr-3 transform rotate-12 ${
+                  darkMode ? "text-yellow-300" : "text-yellow-500"
+                }`}
+              />
+              <h2
+                className={`text-3xl font-extrabold ${
+                  darkMode ? "text-white" : "text-[#3B82F6]"
+                }`}
+              >
+                Hello, {userName}!
+              </h2>
+            </div>
+            <p
+              className={`text-lg leading-relaxed ${
+                darkMode ? "text-white" : "text-gray-700"
+              }`}
+            >
+              Welcome back to your personal dashboard! We’ve prepared some
+              exciting updates and insights for you today. Keep an eye on your
+              budget, track your expenses, and make the most out of your day!
+            </p>
+          </div>
+
           <div className="col-span-full lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Expense Overview
@@ -144,7 +207,9 @@ function Dashboard() {
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                 <div
                   className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: `${(totalExpenses / budget) * 100}%` }}
+                  style={{
+                    width: `${Math.min((totalExpenses / budget) * 100, 100)}%`,
+                  }}
                 ></div>
               </div>
             </div>
@@ -154,104 +219,264 @@ function Dashboard() {
             <h2 className="text-2xl font-bold mb-6 text-blue-600 dark:text-blue-400">
               Add New Expense
             </h2>
-            <form
-              onSubmit={handleAddExpense}
-              className="grid grid-cols-1 gap-6"
-            >
-              <input
-                type="number"
-                placeholder="Amount"
-                value={newExpense.amount}
-                onChange={(e) =>
-                  setNewExpense({ ...newExpense, amount: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
-                required
-              />
+            <form onSubmit={handleAddExpense} className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:space-x-4">
+                {/* Amount Field */}
+                <div className="flex-1 relative">
+                  <label
+                    className="block text-sm font-medium mb-2"
+                    htmlFor="amount"
+                  >
+                    Amount
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaDollarSign className="text-gray-400" />
+                    </span>
+                    <input
+                      placeholder="Amount"
+                      type="number"
+                      id="amount"
+                      value={newExpense.amount}
+                      onChange={(e) =>
+                        setNewExpense({ ...newExpense, amount: e.target.value })
+                      }
+                      required
+                      className="w-full p-3 pl-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-shadow"
+                    />
+                  </div>
+                </div>
 
-              <input
-                type="date"
-                value={newExpense.date}
-                onChange={(e) =>
-                  setNewExpense({ ...newExpense, date: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
-                required
-              />
-
-              <div className="relative">
-                <select
-                  value={newExpense.category}
-                  onChange={(e) =>
-                    setNewExpense({ ...newExpense, category: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow appearance-none"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDownIcon
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
+                {/* Date Field */}
+                <div className="flex-1 relative">
+                  <label
+                    className="block text-sm font-medium mb-2"
+                    htmlFor="date"
+                  >
+                    Date
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaCalendarAlt className="text-gray-400" />
+                    </span>
+                    <input
+                      placeholder="Date"
+                      type="date"
+                      id="date"
+                      value={newExpense.date}
+                      onChange={(e) =>
+                        setNewExpense({ ...newExpense, date: e.target.value })
+                      }
+                      required
+                      className="w-full p-3 pl-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-shadow"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <input
-                type="text"
-                placeholder="Notes"
-                value={newExpense.notes}
-                onChange={(e) =>
-                  setNewExpense({ ...newExpense, notes: e.target.value })
-                }
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 transition-shadow"
-              />
+              {/* Category Field */}
+              <div className="relative">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  htmlFor="category"
+                >
+                  Category
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaListUl className="text-gray-400" />
+                  </span>
+                  <select
+                    id="category"
+                    value={newExpense.category}
+                    onChange={(e) =>
+                      setNewExpense({ ...newExpense, category: e.target.value })
+                    }
+                    className="w-full p-3 pl-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-shadow"
+                  >
+                    <option value="0">Choose a category</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
+              {/* Notes Field */}
+              <div className="relative">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  htmlFor="notes"
+                >
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  placeholder="Notes..."
+                  value={newExpense.notes}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, notes: e.target.value })
+                  }
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition-shadow"
+                ></textarea>
+              </div>
+
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center font-semibold"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
               >
-                <PlusIcon size={20} className="mr-2" /> Add Expense
+                <FaPlus className="mr-2" />
+                Add Expense
               </button>
             </form>
           </div>
 
           <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
-              Expense List
+              Recent Expenses
             </h2>
-            <ul className="space-y-4">
-              {expenses.map((expense) => (
-                <li
-                  key={expense.id}
-                  className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg"
-                >
-                  <div>
-                    <p className="font-semibold">
-                      {expense.category}: ${expense.amount}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {expense.date} - {expense.notes}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setExpenses(
-                        expenses.filter((item) => item.id !== expense.id)
-                      )
-                    }
-                    className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
+            {expenses.length === 0 ? (
+              <p>No expenses recorded yet.</p>
+            ) : (
+              <ul className="space-y-4 ">
+                {expenses.map((expense) => (
+                  <li
+                    key={expense.id}
+                    onClick={() => openDetailModal(expense)}
+                    className={`flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300 ${
+                      darkMode
+                        ? "hover:!bg-gray-600 hover:shadow-xl"
+                        : "hover:!bg-gray-200 hover:shadow-xl"
+                    }`}
                   >
-                    <TrashIcon size={20} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <div className="w-full">
+                      <span className="block text-lg font-semibold">
+                        ${expense.amount}
+                      </span>
+                      <p className="text-gray-500 w-1/2">{expense.notes}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-gray-500">
+                        {new Date(expense.date).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteModal(expense);
+                        }}
+                        className="ml-4 text-red-500 hover:text-red-700 transition duration-200"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+
+          {/* Detail Modal */}
+          {showDetailModal && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all duration-300 ease-in-out scale-95 hover:scale-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                    Expense Details
+                  </h2>
+                  <button
+                    onClick={() => setShowDetailModal(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+                {selectedExpense && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                        Amount
+                      </span>
+                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        ${selectedExpense.amount}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                          Date
+                        </p>
+                        <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                          {new Date(selectedExpense.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                          Category
+                        </p>
+                        <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                          {selectedExpense.category}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Notes
+                      </p>
+                      <p className="text-lg text-gray-800 dark:text-gray-200">
+                        {selectedExpense.notes}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 transform hover:scale-105"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+                <p>Are you sure you want to delete this expense?</p>
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="mr-2 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
