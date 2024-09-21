@@ -7,6 +7,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig"; // Adjust path accordingly
 import { ref, set } from "firebase/database";
 import { db } from "../../firebase/firebaseConfig"; // Ensure you import Realtime Database
+import { toast } from "react-toastify";
 
 const ShopCreate = () => {
   const navigate = useNavigate();
@@ -49,10 +50,12 @@ const ShopCreate = () => {
         email: values.email,
       });
       console.log(`User data saved for UID: ${userId}`);
+      toast.success("Signup successful! Welcome!");
 
       navigate("/");
     } catch (error) {
       console.error("Error creating user:", error);
+      toast.error("Login failed. Please check your credentials.");
       setError(error.message);
     } finally {
       setLoading(false);
