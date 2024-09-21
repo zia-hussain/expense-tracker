@@ -162,13 +162,17 @@ function Dashboard() {
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
             >
-              {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
+              {darkMode ? (
+                <SunIcon className="rotate-animation" size={20} />
+              ) : (
+                <MoonIcon className="littlerotate-animation" size={20} />
+              )}
             </button>
             <button
               onClick={() => handleLogout()}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
             >
-              <LogOut size={20} />
+              <LogOut className="bounce-animation" size={20} />
             </button>
           </div>
         </div>
@@ -192,7 +196,7 @@ function Dashboard() {
             <div className="flex items-center mb-4">
               <StarIcon
                 size={32}
-                className={`mr-3 transform rotate-12 ${
+                className={`mr-3 rotate-animation transform rotate-12 ${
                   darkMode ? "text-yellow-300" : "text-yellow-500"
                 }`}
               />
