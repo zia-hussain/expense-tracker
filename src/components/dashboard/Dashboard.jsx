@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { TrashIcon, MoonIcon, SunIcon, StarIcon, LogOut } from "lucide-react";
-
 import { FaDollarSign, FaCalendarAlt, FaListUl, FaPlus } from "react-icons/fa";
+import { Skeleton } from "@mui/material";
 import {
   BarChart,
   Bar,
@@ -17,23 +17,17 @@ import {
   addExpense,
   deleteExpense,
   selectExpenses,
+  setExpenses,
 } from "../../redux/features/expenseSlice";
-import { loginSuccess, logout } from "@/redux/features/authSlice";
-import { db } from "@/firebase/firebaseConfig";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { logout } from "@/redux/features/authSlice";
+import { getDatabase, onValue, ref, set } from "firebase/database";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
 function Dashboard() {
   const dispatch = useDispatch();
   const expenses = useSelector(selectExpenses);
-  const db = getDatabase();
-  const starCountRef = ref(db, "posts/" + postId + "/starCount");
-  onValue(starCountRef, (snapshot) => {
-    const data = snapshot.val();
-    updateStarCount(postElement, data);
-  });
-
   const [darkMode, setDarkMode] = useState(true);
   const [newExpense, setNewExpense] = useState({
     amount: "",
@@ -41,36 +35,52 @@ function Dashboard() {
     category: "",
     notes: "",
   });
-  const [userName, setUserName] = useState("John Doe");
+  const auth = getAuth();
+  const [userName, setUserName] = useState("");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading
+  const budget = 1000; // Set your desired budget value here
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserExpenses(user.uid);
+        fetchUserName(user.uid);
+      } else {
+        console.error("No user is currently logged in");
+      }
+    });
 
-  const handleAddExpense = (e) => {
-    e.preventDefault();
-    if (newExpense.category === "0") {
-      alert("Please select a valid category.");
-      return;
-    }
+    return () => unsubscribe();
+  }, [auth]);
 
-    const newExpenseWithId = { ...newExpense, id: Date.now() };
+  const fetchUserExpenses = async (userId) => {
+    const userRef = ref(getDatabase(), `users/${userId}/expenses`);
+    onValue(userRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const expensesArray = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        dispatch(setExpenses(expensesArray));
+      } else {
+        console.log("No expenses found for this user.");
+      }
+      setLoading(false); // Set loading to false after fetching
+    });
+  };
 
-    dispatch(addExpense(newExpenseWithId));
-
-    setNewExpense({
-      amount: "",
-      date: new Date().toISOString().split("T")[0],
-      category: "Food",
-      notes: "",
+  const fetchUserName = async (userId) => {
+    const userNameRef = ref(getDatabase(), `users/${userId}`);
+    onValue(userNameRef, (snapshot) => {
+      const userData = snapshot.val();
+      if (userData && userData.name) {
+        setUserName(userData.name || "Guest");
+      }
     });
   };
 
@@ -89,11 +99,45 @@ function Dashboard() {
     setShowDeleteModal(false);
   };
 
+  const handleAddExpense = async (event) => {
+    event.preventDefault();
+    const expenseData = {
+      category: newExpense.category,
+      amount: newExpense.amount,
+      date: newExpense.date,
+      notes: newExpense.notes,
+    };
+    const userId = auth.currentUser.uid;
+
+    try {
+      await set(
+        ref(getDatabase(), `users/${userId}/expenses/${Date.now()}`),
+        expenseData
+      );
+      dispatch(addExpense(expenseData)); // Dispatch action to add expense
+      setNewExpense({
+        amount: "",
+        date: new Date().toISOString().split("T")[0],
+        category: "",
+        notes: "",
+      }); // Reset state
+    } catch (error) {
+      console.error("Error adding expense:", error);
+    }
+  };
+
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
   );
-  const budget = 1000;
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   const chartData = categories.map((category) => ({
     name: category,
@@ -152,14 +196,19 @@ function Dashboard() {
                   darkMode ? "text-yellow-300" : "text-yellow-500"
                 }`}
               />
-              <h2
-                className={`text-3xl font-extrabold ${
-                  darkMode ? "text-white" : "text-[#3B82F6]"
-                }`}
-              >
-                Hello, {userName}!
-              </h2>
+              {loading ? ( // Show skeleton loader for username while loading
+                <Skeleton variant="text" width={150} height={60} />
+              ) : (
+                <h2
+                  className={`text-3xl font-extrabold ${
+                    darkMode ? "text-white" : "text-[#3B82F6]"
+                  }`}
+                >
+                  Hello, {userName || "Guest"}!
+                </h2>
+              )}
             </div>
+
             <p
               className={`text-lg leading-relaxed ${
                 darkMode ? "text-white" : "text-gray-700"
@@ -175,50 +224,69 @@ function Dashboard() {
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Expense Overview
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="name" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
-                />
-                <Legend />
-                <Bar dataKey="amount" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <Skeleton variant="rect" width="100%" height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="name" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1F2937",
+                      border: "none",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="amount" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Budget Overview
             </h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span>Budget:</span>
-                <span className="font-semibold">${budget.toFixed(2)}</span>
+            {loading ? (
+              <div className="space-y-4">
+                <Skeleton variant="text" width="30%" />
+                <Skeleton variant="text" width="30%" />
+                <Skeleton variant="text" width="30%" />
+                <Skeleton variant="rect" width="100%" height={10} />
               </div>
-              <div className="flex justify-between items-center">
-                <span>Total Expenses:</span>
-                <span className="font-semibold">
-                  ${totalExpenses.toFixed(2)}
-                </span>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span>Budget:</span>
+                  <span className="font-semibold">${budget.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Total Expenses:</span>
+                  <span className="font-semibold">
+                    ${totalExpenses.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Remaining:</span>
+                  <span className="font-semibold">
+                    ${(budget - totalExpenses).toFixed(2)}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{
+                      width: `${Math.min(
+                        (totalExpenses / budget) * 100,
+                        100
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span>Remaining:</span>
-                <span className="font-semibold">
-                  ${(budget - totalExpenses).toFixed(2)}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{
-                    width: `${Math.min((totalExpenses / budget) * 100, 100)}%`,
-                  }}
-                ></div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -344,21 +412,28 @@ function Dashboard() {
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Recent Expenses
             </h2>
-            {expenses.length === 0 ? (
+            {loading ? ( // Show loader while fetching data
+              <div className="space-y-4">
+                <Skeleton variant="rectangular" height={40} />
+                <Skeleton variant="text" />
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="rectangular" height={40} />
+                <Skeleton variant="text" />
+                <Skeleton variant="text" width="80%" />
+              </div>
+            ) : expenses.length === 0 ? (
               <p>No expenses recorded yet.</p>
             ) : (
-              <ul className="space-y-4 ">
+              <ul className="space-y-4">
                 {expenses.map((expense) => (
                   <li
                     key={expense.id}
-                    onClick={() => openDetailModal(expense)}
-                    className={`flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300 ${
-                      darkMode
-                        ? "hover:!bg-gray-600 hover:shadow-xl"
-                        : "hover:!bg-gray-200 hover:shadow-xl"
-                    }`}
+                    className={`flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300`}
                   >
-                    <div className="w-full">
+                    <div
+                      className="w-full"
+                      onClick={() => openDetailModal(expense)}
+                    >
                       <span className="block text-lg font-semibold">
                         ${expense.amount}
                       </span>
