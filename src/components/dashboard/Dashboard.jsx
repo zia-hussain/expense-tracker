@@ -19,14 +19,20 @@ import {
   selectExpenses,
 } from "../../redux/features/expenseSlice";
 import { loginSuccess, logout } from "@/redux/features/authSlice";
-import { ref } from "firebase/database";
 import { db } from "@/firebase/firebaseConfig";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
 function Dashboard() {
   const dispatch = useDispatch();
   const expenses = useSelector(selectExpenses);
+  const db = getDatabase();
+  const starCountRef = ref(db, "posts/" + postId + "/starCount");
+  onValue(starCountRef, (snapshot) => {
+    const data = snapshot.val();
+    updateStarCount(postElement, data);
+  });
 
   const [darkMode, setDarkMode] = useState(true);
   const [newExpense, setNewExpense] = useState({
