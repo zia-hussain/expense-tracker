@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { CircularProgress } from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { auth } from "../../firebase/firebaseConfig"; // Ensure this points to your firebase config file
+import { auth } from "../../firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "@/redux/features/authSlice";
@@ -34,19 +34,15 @@ const Login = () => {
         auth,
         values.email,
         values.password
-      )
-        .then((res) => {
-          dispatch(loginSuccess(res));
-          const currentUserEmail = res.user.email;
-          localStorage.setItem("currentUser", currentUserEmail);
-          navigate("/"); // Ensure this is called after login success
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      // User logged in successfully
+      );
+
+      dispatch(loginSuccess(userCredential)); // Dispatch login success
+      const currentUserEmail = userCredential.user.email;
+      localStorage.setItem("currentUser", currentUserEmail);
+      navigate("/"); // Navigate after login success
     } catch (error) {
       console.error("Login error:", error);
+      toast.error("Login failed. Please check your credentials."); // Show error toast
     } finally {
       setSubmitting(false);
     }
