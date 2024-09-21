@@ -37,6 +37,8 @@ const Login = () => {
       )
         .then((res) => {
           dispatch(loginSuccess(res));
+          const currentUserEmail = res.user.email;
+          localStorage.setItem("currentUser", currentUserEmail);
           navigate("/"); // Ensure this is called after login success
         })
         .catch((err) => {
