@@ -4,21 +4,29 @@ const initialState = {
   expenses: [],
 };
 
-const expensesSlice = createSlice({
+const expenseSlice = createSlice({
   name: "expenses",
   initialState,
   reducers: {
-    addExpense: (state, action) => {
+    addExpense(state, action) {
       state.expenses.push(action.payload);
     },
-    deleteExpense: (state, action) => {
+    deleteExpense(state, action) {
       state.expenses = state.expenses.filter(
         (expense) => expense.id !== action.payload
       );
     },
+    setExpenses(state, action) {
+      state.expenses = action.payload; // Set the expenses array
+    },
   },
 });
 
-export const { addExpense, deleteExpense } = expensesSlice.actions;
+// Export the actions
+export const { addExpense, deleteExpense, setExpenses } = expenseSlice.actions;
+
+// Selector
 export const selectExpenses = (state) => state.expenses.expenses;
-export default expensesSlice.reducer;
+
+// Export the reducer
+export default expenseSlice.reducer;
