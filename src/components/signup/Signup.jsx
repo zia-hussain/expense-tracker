@@ -48,6 +48,7 @@ const ShopCreate = () => {
         name: values.name,
         email: values.email,
       });
+      console.log(`User data saved for UID: ${userId}`);
 
       navigate("/");
     } catch (error) {
