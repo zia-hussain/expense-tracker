@@ -87,7 +87,7 @@ const ShopCreate = () => {
         <div className="bg-gray-800 p-8 sm:p-12 flex items-center justify-center h-full relative">
           <div className="w-full max-w-md relative z-30">
             <h2 className="text-3xl font-extrabold text-white">
-              Register as a vendor
+              Create Your Account
               <span className="text-blue-500 pl-1">.</span>
             </h2>
             <p className="mt-4 text-gray-400">
