@@ -28,7 +28,7 @@ const SalaryUpdateModal = ({ open, onClose, currentSalary }) => {
       className="flex items-center justify-center"
     >
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all duration-300 ease-in-out scale-95 hover:scale-100">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
               Update Salary
@@ -68,7 +68,7 @@ const SalaryUpdateModal = ({ open, onClose, currentSalary }) => {
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 transform hover:scale-105 mr-2"
+              className="w-1/2 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform mr-2"
             >
               Cancel
             </button>
@@ -76,7 +76,7 @@ const SalaryUpdateModal = ({ open, onClose, currentSalary }) => {
             {/* Update Salary Button */}
             <button
               onClick={handleUpdateSalary} // Function to update the salary in Firebase
-              className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 transform hover:scale-105 ml-2"
+              className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform ml-2"
             >
               Update Salary
             </button>
