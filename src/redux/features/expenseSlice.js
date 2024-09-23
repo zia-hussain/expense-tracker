@@ -1,4 +1,4 @@
-// In your expenseSlice.js
+// redux/features/expenseSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import { getDatabase, ref, set, remove } from "firebase/database";
 import { auth } from "@/firebase/firebaseConfig";
@@ -21,6 +21,9 @@ const expenseSlice = createSlice({
     },
     setExpenses(state, action) {
       state.expenses = action.payload; // Set the expenses array
+    },
+    clearExpenses(state) {
+      return initialState; // Reset expenses to the initial state
     },
   },
 });
@@ -52,7 +55,8 @@ export const deleteExpenseAsync = (expenseId) => async (dispatch) => {
 };
 
 // Export the actions
-export const { addExpense, deleteExpense, setExpenses } = expenseSlice.actions;
+export const { addExpense, deleteExpense, setExpenses, clearExpenses } =
+  expenseSlice.actions;
 
 // Selector
 export const selectExpenses = (state) => state.expenses.expenses;
