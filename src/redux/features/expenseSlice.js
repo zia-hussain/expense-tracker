@@ -37,7 +37,7 @@ export const addExpenseAsync = (expenseData) => async (dispatch) => {
       ...expenseData,
       id: expenseId,
     });
-    dispatch(addExpense({ ...expenseData, id: expenseId })); // Dispatch action to Redux
+    // dispatch(addExpense({ ...expenseData, id: expenseId }))
   } catch (error) {
     console.error("Error adding expense:", error);
   }
