@@ -279,21 +279,20 @@ function Dashboard() {
             )}
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 relative">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col h-full">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Budget Overview
             </h2>
             {loading ? (
-              <div className="space-y-4">
-                <Skeleton variant="text" width="30%" />
-                <Skeleton variant="text" width="30%" />
-                <Skeleton variant="text" width="30%" />
-                <Skeleton variant="rect" width="100%" height={10} />
+              <div className="space-y-4 flex-grow">
+                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-2 bg-gray-200 rounded w-full"></div>
               </div>
             ) : (
-              <div className=" h-full">
-                <div className="space-y-4">
-                  {/* Budget Display */}
+              <div className="flex-grow">
+                <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span>Budget:</span>
                     <span className="font-semibold">Rs {budget}</span>
@@ -322,26 +321,29 @@ function Dashboard() {
                     ></div>
                   </div>
                 </div>
-
-                {/* Update Salary Button */}
-                <div className="absolute bottom-0 left-0 w-1/2 p-4">
-                  <button
-                    onClick={() => setOpenModal(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
-                  >
-                    <FaEdit className="mr-2" />
-                    Update Budget
-                  </button>
-                </div>
-
-                {/* Salary Update Modal */}
-                <SalaryUpdateModal
-                  open={openModal}
-                  onClose={() => setOpenModal(false)}
-                  currentSalary={salary}
-                />
               </div>
             )}
+            <div className="mt-auto">
+              <button
+                onClick={() => setOpenModal(true)}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Update Budget
+              </button>
+            </div>
+            <SalaryUpdateModal
+              open={openModal}
+              onClose={() => setOpenModal(false)}
+              currentSalary={salary}
+            />
           </div>
 
           <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
