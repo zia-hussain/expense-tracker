@@ -325,7 +325,7 @@ function Dashboard() {
                     className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
                   >
                     <FaEdit className="mr-2" />
-                    Update Salary
+                    Update Budget
                   </button>
                 </div>
 
