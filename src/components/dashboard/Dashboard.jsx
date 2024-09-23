@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { TrashIcon, MoonIcon, SunIcon, StarIcon, LogOut } from "lucide-react";
-import { FaDollarSign, FaCalendarAlt, FaListUl, FaPlus } from "react-icons/fa";
+import {
+  FaDollarSign,
+  FaCalendarAlt,
+  FaListUl,
+  FaPlus,
+  FaMoneyBill,
+} from "react-icons/fa";
 import { Skeleton } from "@mui/material";
 import {
   BarChart,
@@ -41,14 +47,16 @@ function Dashboard() {
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userSalary, setUserSalary] = useState(0);
   const [loading, setLoading] = useState(true); // Add loading
-  const budget = 1000; // Set your desired budget value here
+  const [budget, setBudget] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchUserExpenses(user.uid);
         fetchUserName(user.uid);
+        fetchSalary(user.uid);
       } else {
         console.error("No user is currently logged in");
       }
@@ -81,6 +89,17 @@ function Dashboard() {
       const userData = snapshot.val();
       if (userData && userData.name) {
         setUserName(userData.name || "Guest");
+      }
+    });
+  };
+
+  const fetchSalary = async (userId) => {
+    const userSalaryRef = ref(getDatabase(), `users/${userId}/salary`);
+    onValue(userSalaryRef, (snapshot) => {
+      const salaryData = snapshot.val();
+      if (salaryData) {
+        setUserSalary(salaryData); // Assuming you have a state to hold the salary
+        setBudget(salaryData); // Set budget to salary
       }
     });
   };
@@ -265,18 +284,18 @@ function Dashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span>Budget:</span>
-                  <span className="font-semibold">${budget.toFixed(2)}</span>
+                  <span className="font-semibold">Rs {budget}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Total Expenses:</span>
                   <span className="font-semibold">
-                    ${totalExpenses.toFixed(2)}
+                    Rs {totalExpenses.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Remaining:</span>
                   <span className="font-semibold">
-                    ${(budget - totalExpenses).toFixed(2)}
+                    Rs {(budget - totalExpenses).toFixed(2)}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
@@ -310,7 +329,7 @@ function Dashboard() {
                   </label>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaDollarSign className="text-gray-400" />
+                      <FaMoneyBill className="text-gray-400" />
                     </span>
                     <input
                       placeholder="Amount"
@@ -440,7 +459,7 @@ function Dashboard() {
                       onClick={() => openDetailModal(expense)}
                     >
                       <span className="block text-lg font-semibold">
-                        ${expense.amount}
+                        Rs: {expense.amount}
                       </span>
                       <p className="text-gray-500 w-1/2">{expense.notes}</p>
                     </div>
@@ -499,7 +518,7 @@ function Dashboard() {
                         Amount
                       </span>
                       <span className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        ${selectedExpense.amount}
+                        Rs: {selectedExpense.amount}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
