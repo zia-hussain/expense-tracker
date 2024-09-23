@@ -5,6 +5,7 @@ import {
   FaCalendarAlt,
   FaListUl,
   FaPlus,
+  FaEdit,
   FaMoneyBill,
 } from "react-icons/fa";
 import { Skeleton } from "@mui/material";
@@ -30,6 +31,7 @@ import { getDatabase, onValue, ref, set } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { toast } from "react-toastify";
 import SalaryUpdateModal from "./SalaryUpdateModal";
+import ModernBarChart from "./ModernBarChart";
 
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
@@ -268,21 +270,7 @@ function Dashboard() {
             {loading ? (
               <Skeleton variant="rect" width="100%" height={300} />
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="name" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1F2937",
-                      border: "none",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="amount" fill="#3B82F6" />
-                </BarChart>
-              </ResponsiveContainer>
+              <ModernBarChart chartData={chartData} />
             )}
           </div>
 
@@ -334,8 +322,9 @@ function Dashboard() {
                 <div className="absolute bottom-0 left-0 w-1/2 p-4">
                   <button
                     onClick={() => setOpenModal(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
                   >
+                    <FaEdit className="mr-2" />
                     Update Salary
                   </button>
                 </div>
