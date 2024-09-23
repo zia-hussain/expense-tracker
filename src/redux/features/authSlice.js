@@ -1,5 +1,6 @@
 // redux/features/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
+import { clearExpenses } from "./expenseSlice"; // Import the clearExpenses action
 
 const initialState = {
   isAuthenticated: !!localStorage.getItem("user"),
@@ -15,7 +16,7 @@ const authSlice = createSlice({
       state.user = action.payload;
       localStorage.setItem("user", JSON.stringify(action.payload));
     },
-    logout: (state) => {
+    logoutSuccess: (state) => {
       state.isAuthenticated = false;
       state.user = null;
       localStorage.removeItem("user");
@@ -23,5 +24,11 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+// Thunk for logging out
+export const logout = () => (dispatch) => {
+  dispatch(logoutSuccess()); // Call the logout reducer
+  dispatch(clearExpenses()); // Clear expenses after logout
+};
+
+export const { loginSuccess, logoutSuccess } = authSlice.actions;
 export default authSlice.reducer;
