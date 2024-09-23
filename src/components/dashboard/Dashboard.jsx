@@ -69,8 +69,9 @@ function Dashboard() {
         dispatch(setExpenses(expensesArray));
       } else {
         console.log("No expenses found for this user.");
+        dispatch(setExpenses([]));
       }
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     });
   };
 
@@ -114,7 +115,7 @@ function Dashboard() {
         ref(getDatabase(), `users/${userId}/expenses/${Date.now()}`),
         expenseData
       );
-      dispatch(addExpense(expenseData)); // Dispatch action to add expense
+      // dispatch(addExpense(expenseData));
       setNewExpense({
         amount: "",
         date: new Date().toISOString().split("T")[0],
