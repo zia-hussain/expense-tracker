@@ -268,7 +268,12 @@ function Dashboard() {
               Expense Overview
             </h2>
             {loading ? (
-              <Skeleton variant="rect" width="100%" height={300} />
+              <Skeleton
+                className="rounded-lg"
+                variant="rect"
+                width="100%"
+                height={300}
+              />
             ) : (
               <ModernBarChart chartData={chartData} />
             )}
