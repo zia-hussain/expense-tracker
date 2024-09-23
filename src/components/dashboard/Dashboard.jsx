@@ -28,12 +28,15 @@ import {
 import { logout } from "@/redux/features/authSlice";
 import { getDatabase, onValue, ref, set } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { toast } from "react-toastify";
+import SalaryUpdateModal from "./SalaryUpdateModal";
 
 const categories = ["Food", "Travel", "Entertainment", "Rent", "Other"];
 
 function Dashboard() {
   const dispatch = useDispatch();
   const expenses = useSelector(selectExpenses);
+
   const [darkMode, setDarkMode] = useState(true);
   const [newExpense, setNewExpense] = useState({
     amount: "",
@@ -41,14 +44,17 @@ function Dashboard() {
     category: "",
     notes: "",
   });
+
   const auth = getAuth();
   const [userName, setUserName] = useState("");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [userSalary, setUserSalary] = useState(0);
-  const [loading, setLoading] = useState(true); // Add loading
+  const [salary, setSalary] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(0);
 
   useEffect(() => {
@@ -65,6 +71,7 @@ function Dashboard() {
     return () => unsubscribe();
   }, [auth]);
 
+  // Fetch real-time expenses
   const fetchUserExpenses = async (userId) => {
     const userRef = ref(getDatabase(), `users/${userId}/expenses`);
     onValue(userRef, (snapshot) => {
@@ -83,6 +90,7 @@ function Dashboard() {
     });
   };
 
+  // Fetch username
   const fetchUserName = async (userId) => {
     const userNameRef = ref(getDatabase(), `users/${userId}`);
     onValue(userNameRef, (snapshot) => {
@@ -93,32 +101,38 @@ function Dashboard() {
     });
   };
 
+  // Fetch salary in real-time and update budget
   const fetchSalary = async (userId) => {
     const userSalaryRef = ref(getDatabase(), `users/${userId}/salary`);
     onValue(userSalaryRef, (snapshot) => {
       const salaryData = snapshot.val();
       if (salaryData) {
-        setUserSalary(salaryData); // Assuming you have a state to hold the salary
-        setBudget(salaryData); // Set budget to salary
+        setUserSalary(salaryData);
+        setSalary(salaryData);
+        setBudget(salaryData);
       }
     });
   };
 
+  // Open modal for expense details
   const openDetailModal = (expense) => {
     setSelectedExpense(expense);
     setShowDetailModal(true);
   };
 
+  // Open delete confirmation modal
   const openDeleteModal = (expense) => {
     setExpenseToDelete(expense);
     setShowDeleteModal(true);
   };
 
+  // Confirm and delete an expense
   const confirmDelete = () => {
     dispatch(deleteExpense(expenseToDelete.id));
     setShowDeleteModal(false);
   };
 
+  // Add new expense to Firebase
   const handleAddExpense = async (event) => {
     event.preventDefault();
     const expenseData = {
@@ -134,7 +148,6 @@ function Dashboard() {
         ref(getDatabase(), `users/${userId}/expenses/${Date.now()}`),
         expenseData
       );
-      // dispatch(addExpense(expenseData));
       setNewExpense({
         amount: "",
         date: new Date().toISOString().split("T")[0],
@@ -146,11 +159,13 @@ function Dashboard() {
     }
   };
 
+  // Calculate total expenses
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
   );
 
+  // Handle dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -159,16 +174,18 @@ function Dashboard() {
     }
   }, [darkMode]);
 
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  // Prepare data for chart visualization
   const chartData = categories.map((category) => ({
     name: category,
     amount: expenses
       .filter((expense) => expense.category === category)
       .reduce((sum, expense) => sum + Number(expense.amount), 0),
   }));
-
-  const handleLogout = () => {
-    dispatch(logout());
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -269,7 +286,7 @@ function Dashboard() {
             )}
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 relative">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Budget Overview
             </h2>
@@ -281,34 +298,54 @@ function Dashboard() {
                 <Skeleton variant="rect" width="100%" height={10} />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Budget:</span>
-                  <span className="font-semibold">Rs {budget}</span>
+              <div className=" h-full">
+                <div className="space-y-4">
+                  {/* Budget Display */}
+                  <div className="flex justify-between items-center">
+                    <span>Budget:</span>
+                    <span className="font-semibold">Rs {budget}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Total Expenses:</span>
+                    <span className="font-semibold">
+                      Rs {totalExpenses.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Remaining:</span>
+                    <span className="font-semibold">
+                      Rs {(budget - totalExpenses).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          (totalExpenses / budget) * 100,
+                          100
+                        )}%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Total Expenses:</span>
-                  <span className="font-semibold">
-                    Rs {totalExpenses.toFixed(2)}
-                  </span>
+
+                {/* Update Salary Button */}
+                <div className="absolute bottom-0 left-0 w-1/2 p-4">
+                  <button
+                    onClick={() => setOpenModal(true)}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                  >
+                    Update Salary
+                  </button>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span>Remaining:</span>
-                  <span className="font-semibold">
-                    Rs {(budget - totalExpenses).toFixed(2)}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        (totalExpenses / budget) * 100,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
+
+                {/* Salary Update Modal */}
+                <SalaryUpdateModal
+                  open={openModal}
+                  onClose={() => setOpenModal(false)}
+                  currentSalary={salary}
+                />
               </div>
             )}
           </div>
