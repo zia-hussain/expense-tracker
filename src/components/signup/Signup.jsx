@@ -5,7 +5,7 @@ import { CircularProgress } from "@mui/material";
 import SignupImg from "../../assets/images/signup shop img.jpg";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig"; // Adjust path accordingly
-import { ref, set } from "firebase/database";
+import { getDatabase, ref, set } from "firebase/database";
 import { db } from "../../firebase/firebaseConfig"; // Ensure you import Realtime Database
 import { toast } from "react-toastify";
 
@@ -25,6 +25,7 @@ const ShopCreate = () => {
       email: form.email.value,
       password: form.password.value,
       confirmPassword: form.confirmPassword.value,
+      salary: form.salary.value, // Get the salary value
     };
 
     if (values.password !== values.confirmPassword) {
@@ -43,19 +44,21 @@ const ShopCreate = () => {
       );
       console.log("User created:", userCredential.user);
 
-      // Save the user name in Realtime Database
+      // Save the user name and salary in Realtime Database
       const userId = userCredential.user.uid;
       await set(ref(db, `users/${userId}`), {
         name: values.name,
         email: values.email,
+        salary: values.salary, // Save salary in the database
       });
+
       console.log(`User data saved for UID: ${userId}`);
       toast.success("Signup successful! Welcome!");
 
       navigate("/");
     } catch (error) {
       console.error("Error creating user:", error);
-      toast.error("Login failed. Please check your credentials.");
+      toast.error("Signup failed. Please check your details.");
       setError(error.message);
     } finally {
       setLoading(false);
@@ -115,6 +118,16 @@ const ShopCreate = () => {
                   type="email"
                   name="email"
                   placeholder="Email address"
+                  required
+                  className="appearance-none block w-full px-3 py-3 border border-gray-700 rounded-md bg-gray-900 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="number"
+                  name="salary"
+                  placeholder="Monthly Salary"
                   required
                   className="appearance-none block w-full px-3 py-3 border border-gray-700 rounded-md bg-gray-900 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
