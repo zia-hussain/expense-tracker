@@ -1,19 +1,22 @@
+import { deleteExpenseFromFirebase } from "@/firebase/service"; // Firebase deletion function
 import { deleteExpense, selectExpenses } from "@/redux/features/expenseSlice";
 import { Skeleton } from "@mui/material";
 import { TrashIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { getAuth } from "firebase/auth"; // Firebase auth to get user ID
 
 const ExpenseHistory = ({ loading }) => {
   const dispatch = useDispatch();
-
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const expenses = useSelector(selectExpenses);
 
-  //   const [loading, setLoading] = useState(true);
+  const auth = getAuth(); // Get the Firebase Auth instance
+  const userId = auth.currentUser?.uid; // Get the current logged-in user ID
 
   // Open delete confirmation modal
   const openDeleteModal = (expense) => {
@@ -22,9 +25,30 @@ const ExpenseHistory = ({ loading }) => {
   };
 
   // Confirm and delete an expense
-  const confirmDelete = () => {
-    dispatch(deleteExpense(expenseToDelete.id));
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    try {
+      // Ensure there's a logged-in user
+      if (!userId) {
+        toast.error("User is not authenticated.");
+        return;
+      }
+
+      // 1. Delete from Firebase
+      await deleteExpenseFromFirebase(expenseToDelete.id, userId);
+
+      // 2. Dispatch Redux action to update the state
+      dispatch(deleteExpense(expenseToDelete.id));
+
+      // 3. Show success notification
+      toast.success("Expense deleted successfully.");
+
+      // 4. Close the modal
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      toast.error("Failed to delete expense. Please try again.");
+      setShowDeleteModal(false);
+    }
   };
 
   const openDetailModal = (expense) => {
@@ -38,7 +62,7 @@ const ExpenseHistory = ({ loading }) => {
         <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
           Recent Expenses
         </h2>
-        {loading ? ( // Show loader while fetching data
+        {loading ? (
           <div className="space-y-4">
             <Skeleton
               className="dark:bg-gray-700 rounded-lg"
@@ -70,7 +94,7 @@ const ExpenseHistory = ({ loading }) => {
             {expenses.map((expense) => (
               <li
                 key={expense.id}
-                className={`flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300`}
+                className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300"
               >
                 <div
                   className="w-full"
@@ -118,14 +142,13 @@ const ExpenseHistory = ({ loading }) => {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
                     d="M6 18L18 6M6 6l12 12"
-                  ></path>
+                  />
                 </svg>
               </button>
             </div>
