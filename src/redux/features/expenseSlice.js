@@ -1,6 +1,6 @@
 // redux/features/expenseSlice.js
 import { createSlice } from "@reduxjs/toolkit";
-import { getDatabase, ref, set, remove } from "firebase/database";
+import { getDatabase, ref, set, remove, push } from "firebase/database";
 import { auth } from "@/firebase/firebaseConfig";
 
 const initialState = {
@@ -31,13 +31,13 @@ const expenseSlice = createSlice({
 // Thunk to add an expense
 export const addExpenseAsync = (expenseData) => async (dispatch) => {
   const userId = auth.currentUser.uid;
-  const expenseId = Date.now();
   try {
-    await set(ref(getDatabase(), `users/${userId}/expenses/${expenseId}`), {
-      ...expenseData,
-      id: expenseId,
-    });
-    // dispatch(addExpense({ ...expenseData, id: expenseId }))
+    // Create a unique key for the new expense using push()
+    const newExpenseRef = push(ref(getDatabase(), `users/${userId}/expenses`));
+    const expenseId = newExpenseRef.key; // Get the generated key
+
+    await set(newExpenseRef, { ...expenseData, id: expenseId });
+    dispatch(addExpense({ ...expenseData, id: expenseId }));
   } catch (error) {
     console.error("Error adding expense:", error);
   }
@@ -47,8 +47,8 @@ export const addExpenseAsync = (expenseData) => async (dispatch) => {
 export const deleteExpenseAsync = (expenseId) => async (dispatch) => {
   const userId = auth.currentUser.uid;
   try {
-    await remove(ref(getDatabase(), `users/${userId}/expenses/${expenseId}`));
-    dispatch(deleteExpense(expenseId)); // Dispatch action to Redux
+    await remove(ref(getDatabase(), `users/${userId}/expenses/${expenseId}`)); // Remove from Firebase
+    dispatch(deleteExpense(expenseId)); // Remove from Redux store
   } catch (error) {
     console.error("Error deleting expense:", error);
   }
