@@ -30,6 +30,7 @@ function Dashboard() {
   const [salary, setSalary] = useState(0);
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(0);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -106,6 +107,15 @@ function Dashboard() {
     dispatch(logout());
   };
 
+  const confirmLogout = () => {
+    handleLogout(); // Call your logout function
+    setShowLogoutModal(false); // Close the modal
+  };
+
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
   // Prepare data for chart visualization
   const chartData = categories.map((category) => ({
     name: category,
@@ -133,13 +143,35 @@ function Dashboard() {
               )}
             </button>
             <button
-              onClick={() => handleLogout()}
+              onClick={openLogoutModal}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
             >
               <LogOut className="bounce-animation" size={20} />
             </button>
           </div>
         </div>
+        {showLogoutModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-xl font-semibold mb-4">Confirm Logout</h2>
+              <p>Are you sure you want to log out?</p>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => setShowLogoutModal(false)} // Close modal
+                  className="mr-2 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout} // Confirm logout
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       <main className="container mx-auto px-4 py-8">
