@@ -18,7 +18,6 @@ const ExpenseHistory = ({ loading }) => {
   const auth = getAuth(); // Get the Firebase Auth instance
   const userId = auth.currentUser?.uid; // Get the current logged-in user ID
 
-  // Open delete confirmation modal
   const openDeleteModal = (expense) => {
     setExpenseToDelete(expense);
     setShowDeleteModal(true);
