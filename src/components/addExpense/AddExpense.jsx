@@ -45,7 +45,7 @@ const AddExpense = () => {
   };
 
   return (
-    <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+    <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-300 dark:border-gray-600">
       <h2 className="text-2xl font-bold mb-6 text-blue-600 dark:text-blue-400">
         Add New Expense
       </h2>
