@@ -6,7 +6,7 @@ const Intro = ({ userName, darkMode, loading }) => {
   return (
     <>
       <div
-        className={`col-span-full rounded-xl shadow-xl p-8 text-white relative overflow-hidden ${
+        className={`col-span-full rounded-xl shadow-xl p-8 text-white relative overflow-hidden border border-gray-300 dark:border-gray-600 ${
           darkMode
             ? "bg-gradient-to-r from-[#0A2640] to-[#1C3D5B]"
             : "bg-white text-gray-900"
