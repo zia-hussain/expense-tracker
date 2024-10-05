@@ -177,7 +177,7 @@ function Dashboard() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Intro darkMode={darkMode} userName={userName} loading={loading} />
-          <div className="col-span-full lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="col-span-full lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-300 dark:border-gray-600">
             <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
               Expense Overview
             </h2>
