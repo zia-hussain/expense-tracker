@@ -58,7 +58,7 @@ const ExpenseHistory = ({ loading }) => {
 
   return (
     <>
-      <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+      <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-300 dark:border-gray-600">
         <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
           Recent Expenses
         </h2>
@@ -94,7 +94,7 @@ const ExpenseHistory = ({ loading }) => {
             {expenses.map((expense) => (
               <li
                 key={expense.id}
-                className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300"
+                className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:scale-[1.02] cursor-pointer transition-all duration-300 border border-gray-300 dark:border-gray-600"
               >
                 <div
                   className="w-full"
@@ -127,7 +127,7 @@ const ExpenseHistory = ({ loading }) => {
 
       {/* Detail Modal */}
       {showDetailModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300 border border-gray-300 dark:border-gray-600">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all duration-300 ease-in-out scale-95 hover:scale-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
@@ -202,7 +202,7 @@ const ExpenseHistory = ({ loading }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 border border-gray-300 dark:border-gray-600">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
             <p>Are you sure you want to delete this expense?</p>
