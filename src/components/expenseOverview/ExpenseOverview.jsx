@@ -16,7 +16,7 @@ const ExpenseOverview = ({ loading, budget, salary }) => {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col h-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col h-full border border-gray-300 dark:border-gray-600">
         <h2 className="text-xl font-semibold mb-4 text-blue-600 dark:text-blue-400">
           Budget Overview
         </h2>
