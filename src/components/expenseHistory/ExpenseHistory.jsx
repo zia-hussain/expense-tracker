@@ -205,7 +205,7 @@ const ExpenseHistory = ({ loading }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 border border-gray-300 dark:border-gray-600">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
-            <p>Are you sure you want to delete this expense?</p>
+            <p>Are you sure you want to delete this expense</p>
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
