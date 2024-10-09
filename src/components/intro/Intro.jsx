@@ -27,7 +27,7 @@ const Intro = ({ userName, darkMode, loading }) => {
           />
           {loading ? ( // Show skeleton loader for username while loading
             <Skeleton
-              className="dark:bg-gray-700"
+              className="dark:bg-gray-600"
               variant="text"
               width={150}
               height={60}
