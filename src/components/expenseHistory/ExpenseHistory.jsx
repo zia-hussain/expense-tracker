@@ -5,7 +5,7 @@ import { TrashIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { getAuth } from "firebase/auth"; // Firebase auth to get user ID
+import { getAuth } from "firebase/auth";
 
 const ExpenseHistory = ({ loading }) => {
   const dispatch = useDispatch();
@@ -15,7 +15,7 @@ const ExpenseHistory = ({ loading }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const expenses = useSelector(selectExpenses);
 
-  const auth = getAuth(); // Get the Firebase Auth instance
+  const auth = getAuth();
   const userId = auth.currentUser?.uid; // Get the current logged-in user ID
 
   // Open delete confirmation modal
