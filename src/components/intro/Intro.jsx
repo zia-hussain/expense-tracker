@@ -1,6 +1,5 @@
 import { Skeleton } from "@mui/material";
 import { StarIcon } from "lucide-react";
-import React from "react";
 
 const Intro = ({ userName, darkMode, loading }) => {
   return (
@@ -25,7 +24,7 @@ const Intro = ({ userName, darkMode, loading }) => {
               darkMode ? "text-yellow-300" : "text-yellow-500"
             }`}
           />
-          {loading ? ( // Show skeleton loader for username while loading
+          {loading ? (
             <Skeleton
               className="dark:bg-gray-600"
               variant="text"
