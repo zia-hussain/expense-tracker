@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Modal } from "@mui/material"; // Import Material-UI modal
 import { ref, set } from "firebase/database";
 import { toast } from "react-toastify";
@@ -8,13 +8,12 @@ const SalaryUpdateModal = ({ open, onClose, currentSalary }) => {
   const [newSalary, setNewSalary] = useState(currentSalary);
 
   const handleUpdateSalary = async () => {
-    const userId = auth.currentUser.uid; // Get current user ID
-    // setNewSalary(0);
+    const userId = auth.currentUser.uid;
 
     try {
-      await set(ref(db, `users/${userId}/salary`), newSalary); // Update the salary in Firebase
+      await set(ref(db, `users/${userId}/salary`), newSalary);
       toast.success("Salary updated successfully!");
-      onClose(); // Close the modal after updating
+      onClose();
     } catch (error) {
       console.error("Error updating salary:", error);
       toast.error("Error updating salary.");
@@ -60,22 +59,19 @@ const SalaryUpdateModal = ({ open, onClose, currentSalary }) => {
               placeholder="Update Salary"
               required
               className="appearance-none block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
-              value={newSalary} // The state that holds the updated salary
-              onChange={(e) => setNewSalary(e.target.value)} // Update salary handler
+              value={newSalary}
+              onChange={(e) => setNewSalary(e.target.value)}
             />
           </div>
           <div className="flex justify-between mt-8">
-            {/* Close Button */}
             <button
               onClick={onClose}
               className="w-1/2 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform mr-2"
             >
               Cancel
             </button>
-
-            {/* Update Salary Button */}
             <button
-              onClick={handleUpdateSalary} // Function to update the salary in Firebase
+              onClick={handleUpdateSalary}
               className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform ml-2"
             >
               Update Salary
