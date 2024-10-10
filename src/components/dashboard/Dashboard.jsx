@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MoonIcon, SunIcon, StarIcon, LogOut } from "lucide-react";
+import { MoonIcon, SunIcon, LogOut } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -7,7 +7,6 @@ import { selectExpenses, setExpenses } from "../../redux/features/expenseSlice";
 import { logout } from "@/redux/features/authSlice";
 import { getDatabase, onValue, ref } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import SalaryUpdateModal from "./SalaryUpdateModal";
 import ModernBarChart from "./ModernBarChart";
 import AddExpense from "../addExpense/AddExpense";
 import ExpenseHistory from "../expenseHistory/ExpenseHistory";
@@ -25,7 +24,6 @@ function Dashboard() {
   const auth = getAuth();
   const [userName, setUserName] = useState("");
 
-  const [openModal, setOpenModal] = useState(false);
   const [userSalary, setUserSalary] = useState(0);
   const [salary, setSalary] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -89,10 +87,6 @@ function Dashboard() {
     });
   };
 
-  // Open modal for expense details
-
-  // Add new expense to Firebase
-
   // Handle dark mode
   useEffect(() => {
     if (darkMode) {
@@ -102,14 +96,13 @@ function Dashboard() {
     }
   }, [darkMode]);
 
-  // Handle logout
   const handleLogout = () => {
     dispatch(logout());
   };
 
   const confirmLogout = () => {
-    handleLogout(); // Call your logout function
-    setShowLogoutModal(false); // Close the modal
+    handleLogout();
+    setShowLogoutModal(false);
   };
 
   const openLogoutModal = () => {
