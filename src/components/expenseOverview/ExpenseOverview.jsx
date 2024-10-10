@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import SalaryUpdateModal from "../dashboard/SalaryUpdateModal";
 import { useSelector } from "react-redux";
 import { selectExpenses } from "@/redux/features/expenseSlice";
@@ -8,7 +8,6 @@ const ExpenseOverview = ({ loading, budget, salary }) => {
 
   const [openModal, setOpenModal] = useState(false);
 
-  // Calculate total expenses
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + Number(expense.amount),
     0
